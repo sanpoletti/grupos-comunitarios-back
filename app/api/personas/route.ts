@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Headers CORS compartidos
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'http://localhost:3001',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 // Manejar CORS para preflight (OPTIONS)
 export function OPTIONS() {
   return new Response(null, {
@@ -9,17 +16,22 @@ export function OPTIONS() {
   });
 }
 
-// Headers CORS compartidos
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'http://localhost:3001',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 // POST: registrar una nueva persona
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Validar y limpiar IDHogar (puede venir como string)
+    const IDHogar = body.IDHogar !== undefined && body.IDHogar !== ''
+      ? Number(body.IDHogar)
+      : null;
+
+    if (IDHogar !== null && isNaN(IDHogar)) {
+      return NextResponse.json(
+        { error: 'IDHogar no es un número válido' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     const nuevaPersona = await prisma.personasRaciones.create({
       data: {
@@ -31,6 +43,7 @@ export async function POST(req: NextRequest) {
         fechaNacimiento: new Date(body.fechaNacimiento),
         lugarResidencia: body.lugarResidencia,
         cantidadRaciones: body.cantidadRaciones,
+        IDHogar: IDHogar, // Ahora se controla bien
       },
     });
 
@@ -42,10 +55,7 @@ export async function POST(req: NextRequest) {
     console.error('Error al crear persona:', error);
     return NextResponse.json(
       { error: 'Ocurrió un error al guardar los datos' },
-      {
-        status: 500,
-        headers: corsHeaders,
-      }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -56,15 +66,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const nroDocumento = searchParams.get('nroDocumento');
 
-    let personas;
-
-    if (nroDocumento) {
-      personas = await prisma.personasRaciones.findMany({
-        where: { nroDocumento: nroDocumento },
-      });
-    } else {
-      personas = await prisma.personasRaciones.findMany();
-    }
+    const personas = await prisma.personasRaciones.findMany({
+      where: nroDocumento ? { nroDocumento } : undefined,
+      include: {
+        hogar: true,
+      },
+    });
 
     return NextResponse.json(personas, {
       status: 200,

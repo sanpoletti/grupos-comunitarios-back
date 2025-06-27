@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model PersonasRaciones {
+  idPersonaRacion  Int      @id(map: "PK__Personas__3E2A2FB8558971D5") @default(autoincrement())
+  fechaRegistro    DateTime @default(now(), map: "DF__PersonasR__fecha__44B528D7") @db.DateTime
+  IDTIPODOCUMENTO  Int      @db.TinyInt
+  nroDocumento     String   @db.VarChar(20)
+  nombre           String   @db.VarChar(100)
+  apellido         String   @db.VarChar(100)
+  sexo             String   @db.Char(1)
+  fechaNacimiento  DateTime @db.Date
+  lugarResidencia  String   @db.VarChar(50)
+  cantidadRaciones Int
+  IDHogar Int?
+  hogar   Hogar? @relation(fields: [IDHogar], references: [idHogar])
+}
+
+model tipos_documentos {
+  IDTIPODOCUMENTO Int     @id(map: "PK_TIPO_DOCUMENTO") @default(autoincrement()) @db.TinyInt
+  DESCRIPCION     String? @db.VarChar(60)
+  abreviatura     String? @db.VarChar(20)
+  grupo           Int?    @db.TinyInt
+  IDNACIONALIDAD  Int?
+}
+
+model Hogar {
+  idHogar         Int       @id @default(autoincrement())
+  thogar          Int       @default(1, map: "DF_Hogar_thogar")
+  IDCATEGORIA     Int?
+  resolucion      String?   @db.VarChar(100)
+  fechaalta       DateTime?
+  fechabaja       DateTime?
+  nroTitular      Int?
+  IDRUB           Int?      @default(113308, map: "DF_Hogar_IDRUB")
+  OBSERVACION     String?   @db.VarChar(1000)
+  incluido        Boolean   @default(false, map: "DF_Hogar_incluido")
+  iddomicilio     Int?
+  usuario         String?   @default("suser_sname()", map: "DF_Hogar_usuario") @db.VarChar(50)
+  cartacompromiso DateTime? @db.DateTime
+  idresolusion    Int?
+  fechaMod        DateTime? @db.DateTime
+  UsuarioMod      String?   @db.NVarChar(50)
+  NombreGrupo     String    @db.VarChar(300)
+  nroregistro     Int?
+  montoOrdinario  Decimal?  @db.Decimal(10, 2)
+  montoServicio   Decimal?  @db.Decimal(10, 2)
+  personasRaciones PersonasRaciones[]  // 👈 CAMPO INVERSO
+}
+
