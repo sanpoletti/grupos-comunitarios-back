@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
         fechaNacimiento: new Date(body.fechaNacimiento),
         lugarResidencia: body.lugarResidencia,
         cantidadRaciones: body.cantidadRaciones,
-        IDHogar: IDHogar, // Ahora se controla bien
+        IDHogar: IDHogar, // Controlado
+        observaciones: body.observaciones || null,  // <-- agregado aquí
       },
     });
 

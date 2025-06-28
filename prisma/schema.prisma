@@ -18,6 +18,7 @@ model PersonasRaciones {
   fechaNacimiento  DateTime @db.Date
   lugarResidencia  String   @db.VarChar(50)
   cantidadRaciones Int
+  observaciones String? @db.NVarChar(255)
   IDHogar Int?
   hogar   Hogar? @relation(fields: [IDHogar], references: [idHogar])
 }
