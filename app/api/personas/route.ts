@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         cantidadRaciones: body.cantidadRaciones,
         IDHogar: IDHogar, // Controlado
         observaciones: body.observaciones || null,  // <-- agregado aquí
+        fechaRetiro: body.fechaRetiro ? new Date(body.fechaRetiro) : null,
       },
     });
 
