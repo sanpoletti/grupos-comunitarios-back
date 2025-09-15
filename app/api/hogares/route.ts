@@ -1,37 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'http://localhost:3001',
+  'Access-Control-Allow-Origin': '*', // * mientras probás localmente
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
 // Manejar CORS
 export function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: corsHeaders,
-  });
+  return new Response(null, { status: 204, headers: corsHeaders });
 }
 
-// GET: traer todos los hogares
+// GET: traer todos los hogares mediante SP
 export async function GET(req: NextRequest) {
   try {
-    const hogares = await prisma.hogar.findMany({
-      select: {
-        idHogar: true,
-        NombreGrupo: true,
-      },
-      orderBy: {
-        NombreGrupo: 'asc',
-      },
-    });
+    // Ejecutamos el SP _GruposAsistidos
+    // @ts-ignore
+    const hogares = await prisma.$queryRaw<any[]>`
+      EXEC dbo._GruposAsistidos @IDHOGAR = 0, @tGrupo = 2
+    `;
 
-    return NextResponse.json(hogares, {
-      status: 200,
-      headers: corsHeaders,
-    });
+    // Normalizamos los datos
+    const result = hogares.map(h => ({
+      idHogar: h.IDHOGAR,
+      NombreGrupo: h.NombreGrupo?.trim() || '',
+      nroRegistro: Number(h.nroregistro) || 0, // 👈 aseguramos que siempre sea number
+    }));
+
+    return NextResponse.json(result, { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error('Error al obtener hogares:', error);
     return NextResponse.json(
