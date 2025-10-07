@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     // Ejecutamos el SP _GruposAsistidos
     // @ts-ignore
     const hogares = await prisma.$queryRaw<any[]>`
-      EXEC dbo._GruposAsistidos @IDHOGAR = 0, @tGrupo = 2
+      EXEC dbo._Grupos @IDHOGAR = 0, @tGrupo = 2
     `;
 
     // Normalizamos los datos
